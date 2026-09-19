@@ -1,0 +1,4 @@
+fastapi
+streamlit
+fpdf2
+dotenv
