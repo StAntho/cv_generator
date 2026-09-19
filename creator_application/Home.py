@@ -1,6 +1,7 @@
 import streamlit as st
 import os, requests
 from dotenv import load_dotenv
+from utils.text import text_to_list
 
 st.set_page_config(
     page_title="cv generator",
@@ -9,41 +10,107 @@ st.set_page_config(
 
 st.title("CV Generator")
 
-# === Init session state ===
-if "id" not in st.session_state:
-    st.session_state.id = []
-if "availabilities" not in st.session_state:
-    st.session_state.availabilities = []
-
 # === API ===
 load_dotenv()
 URL_GENERATE_API = f"{os.getenv('STREAMLIT_URL_API')}cv_generate/generate"
 
-st.markdown("#### Your ID")
-name_query = st.text_input("Your names (ex: John Doe)")
-phone_query = st.text_input("Your phone number", type="phone")
-email_query = st.text_input("Your email", type="email")
-whv_query = st.text_input("Your visa number")
+with st.form("cv_form"):
 
-st.markdown("#### Availabilities")
-availability = st.multiselect("Multi", ["Availability", "Immediate Start", "Monday to Friday (am/pm)", "Weekends"])
+    st.subheader("Personal information")
+    name = st.text_input("Your name", placeholder="John Doe")
+    phone = st.text_input("Your phone number", type="phone")
+    email = st.text_input("Your email", type="email")
+    whv = st.text_input("Your visa number", placeholder="Visa number")
 
-if name_query and phone_query and email_query and whv_query:
-    st.session_state.id = [name_query, phone_query, email_query, whv_query]
-if availability:
-    st.session_state.availabilities = [availability]
+    st.subheader("Availabilities")  
+    availability = st.multiselect(
+        "Select your availabilities", 
+        [
+            "Availability", 
+            "Immediate Start", 
+            "Monday to Friday (am/pm)", 
+            "Weekends"
+        ]
+    )
 
-st.write(st.session_state.id)
-st.write(st.session_state.availabilities)
-payload = {
-    "id": {
-        "name": st.session_state.id[0],
-        "phone": st.session_state.id[1],
-        "email": st.session_state.id[2],
-        "whv": st.session_state.id[3],
-    },
-    "availability": st.session_state.availabilities[0],
-}
+    st.subheader("Skills and experiences")
+    section_1_title = st.text_input("section_1_title", "Key Skills")
+    section_1_items = st.text_area(
+        f"Content for {section_1_title}",
+        placeholder="Python \
+                FastAPI \
+                Docker"
+        )
+    
+    section_2_title = st.text_input("section_2_title", "Work Experiences")
+    section_2_items = st.text_area(
+        f"Content for {section_2_title}",
+        placeholder="Backend Developer \
+        API development"
+        )
+    
+    section_3_title = st.text_input("section_3_title", "Education & Training")
+    section_3_items = st.text_area(
+        f"Content for {section_3_title}",
+        placeholder="Computer Science \
+        Software Engineering"
+        )
+    
+    section_4_title = st.text_input("section_4_title", "Language skills")
+    section_4_items = st.text_area(
+        f"Content for {section_4_title}",
+        placeholder="English \
+        French"
+        )
+    
+    section_5_title = st.text_input("section_5_title", "References available upon request")
+    section_5_items = st.text_area(
+        f"Content for {section_5_title}",
+        placeholder="Backend Developer \
+        API development"
+        )
+    
+    submitted = st.form_submit_button(
+        "Generate CV",
+        type="primary"
+    )
+
+if submitted:
+
+    if not name.strip():
+        st.error("Name is required.")
+        st.stop()
+
+    if not phone.strip():
+        st.error("Phone number is required.")
+        st.stop()
+
+    if not email.strip():
+        st.error("Email is required.")
+        st.stop()
+
+    if not whv.strip():
+        st.error("Visa number is required.")
+        st.stop()
+
+    payload = {
+        "personal_info": {
+            "name": name.strip(),
+            "phone": phone.strip(),
+            "email": email.strip(),
+            "whv": whv.strip() or None,
+        },
+        "availability": availability,
+        "sections": {
+            section_1_title.strip(): text_to_list(section_1_items),
+            section_2_title.strip(): text_to_list(section_2_items),
+            section_3_title.strip(): text_to_list(section_3_items),
+            section_4_title.strip(): text_to_list(section_4_items),
+            section_5_title.strip(): text_to_list(section_5_items),
+        },
+    }
+    st.write(payload)
+
 if st.session_state.id and st.session_state.availabilities and st.button("Generate the CV"):
     response = requests.post(
         URL_GENERATE_API,
