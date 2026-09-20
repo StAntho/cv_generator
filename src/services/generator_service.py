@@ -14,7 +14,7 @@ class CVGeneratorService:
 
     def generate(self, payload: GenerateRequest) -> dict:
         print(payload)
-        id  = payload.id
+        id  = payload.personal_info
         availability = payload.availability
 
         pdf = CVBuilder()
@@ -27,7 +27,14 @@ class CVGeneratorService:
             pdf.center_text(val, color=(255, 0, 0))
 
         try:
-            pdf.output(self.GENERATED_DIR / f"cv_{id.name}.pdf")
+            output_path = pdf.output(self.GENERATED_DIR / f"cv_{id.name}.pdf")
+
+            pdf.output(output_path)
+
+            return {
+                "success": True,
+                "filename": f"cv_{id.name}.pdf",
+    }
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

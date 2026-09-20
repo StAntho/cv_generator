@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
-    id: IdList
+    personal_info: IdList
     availability: list[str]
+    sections: dict[str, list[str]]
 
 class IdList(BaseModel):
     name: str

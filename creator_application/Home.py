@@ -1,5 +1,5 @@
 import streamlit as st
-import os, requests
+import os, requests, httpx
 from dotenv import load_dotenv
 from utils.text import text_to_list
 
@@ -98,7 +98,7 @@ if submitted:
             "name": name.strip(),
             "phone": phone.strip(),
             "email": email.strip(),
-            "whv": whv.strip() or None,
+            "whv": whv.strip(),
         },
         "availability": availability,
         "sections": {
@@ -111,12 +111,32 @@ if submitted:
     }
     st.write(payload)
 
-if st.session_state.id and st.session_state.availabilities and st.button("Generate the CV"):
-    response = requests.post(
-        URL_GENERATE_API,
-        json=payload
-    )
+    try:
+        with st.spinner("Generating your CV..."):
 
+            response = httpx.post(
+                URL_GENERATE_API,
+                json=payload,
+                timeout=60.0,
+            )
 
-st.write("STATUS:", response.status_code)
-st.write("RESPONSE:", response.text)
+        response.raise_for_status()
+
+        result = response.json()
+
+        st.success(f"CV {result["filename"]} generated successfully.")
+
+    except httpx.TimeoutException:
+        st.error("The API request timed out.")
+
+    except httpx.HTTPStatusError as exc:
+        st.error(
+            f"FastAPI returned {exc.response.status_code}: "
+            f"{exc.response.text}"
+        )
+
+    except httpx.RequestError as exc:
+        st.error(f"Connection error: {exc}")
+
+    except Exception as exc:
+        st.error(f"Unexpected error: {exc}")
