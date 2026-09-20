@@ -3,3 +3,5 @@ streamlit
 fpdf2
 dotenv
 httpx
+sqlmodel
+pymysql
