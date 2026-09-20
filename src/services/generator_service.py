@@ -16,6 +16,7 @@ class CVGeneratorService:
         print(payload)
         id  = payload.personal_info
         availability = payload.availability
+        sections = payload.sections
 
         pdf = CVBuilder()
         pdf.center_text(id.name, size=18, bold=True)
@@ -25,6 +26,10 @@ class CVGeneratorService:
 
         for i, val in enumerate(availability):
             pdf.center_text(val, color=(255, 0, 0))
+
+        for i, title in enumerate(sections):
+            pdf.h2(title)
+            pdf.bullet_list(sections[title])
 
         try:
             output_path = pdf.output(self.GENERATED_DIR / f"cv_{id.name}.pdf")
