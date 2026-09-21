@@ -2,6 +2,7 @@ import streamlit as st
 import os, requests, httpx
 from dotenv import load_dotenv
 from utils.text import text_to_list
+from api_client import CVApiClient
 
 st.set_page_config(
     page_title="cv generator",
@@ -12,7 +13,9 @@ st.title("CV Generator")
 
 # === API ===
 load_dotenv()
-URL_GENERATE_API = f"{os.getenv('STREAMLIT_URL_API')}cv_generate/generate"
+API_URL = os.getenv("STREAMLIT_URL_API")
+
+client = CVApiClient(API_URL)
 
 with st.form("cv_form"):
 
@@ -113,16 +116,9 @@ if submitted:
 
     try:
         with st.spinner("Generating your CV..."):
+            response = client.generate_cv(payload)
 
-            response = httpx.post(
-                URL_GENERATE_API,
-                json=payload,
-                timeout=60.0,
-            )
-
-        response.raise_for_status()
-
-        result = response.json()
+        result = response
 
         st.success(f"CV {result["filename"]} generated successfully.")
 

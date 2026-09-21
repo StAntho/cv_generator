@@ -2,17 +2,16 @@ import os, httpx
 import streamlit as st
 from dotenv import load_dotenv
 from utils.text import text_to_list
+from api_client import CVApiClient
 
 load_dotenv()
-
 API_URL = os.getenv("STREAMLIT_URL_API")
 
 if not API_URL:
     st.error("STREAMLIT_URL_API is not configured.")
     st.stop()
 
-POPULATE_CANDIDATE_URL = f"{API_URL.rstrip('/')}/populate_db/candidate"
-
+client = CVApiClient(API_URL)
 
 st.title("Populator database")
 
@@ -43,6 +42,10 @@ if submitted:
         st.error("Email is required.")
         st.stop()
 
+    if not whv.strip():
+        st.error("Visa number is required.")
+        st.stop()
+
     payload = {
         "name": name.strip(),
         "phone": phone.strip(),
@@ -55,15 +58,9 @@ if submitted:
     try:
         with st.spinner("Recording your candidate..."):
 
-            response = httpx.post(
-                POPULATE_CANDIDATE_URL,
-                json=payload,
-                timeout=60.0,
-            )
+            response = client.populate_candidate(payload)
 
-        response.raise_for_status()
-
-        result = response.json()
+        result = response
         st.success(f"Candidate {result["name"]} recorded successfully.")
 
     except httpx.TimeoutException:
