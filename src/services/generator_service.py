@@ -3,6 +3,8 @@ from fastapi import HTTPException
 from fpdf import FPDF
 from schemas.generator import GenerateRequest
 from structure_builder.simple_structure import CVBuilder
+from sqlmodel import Session, select
+from models.candidate import Candidate
 
 class CVGeneratorService:
     GENERATED_DIR = Path("generations")
@@ -43,3 +45,19 @@ class CVGeneratorService:
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+
+    def get_candidates(
+            session: Session,
+    ):        
+        statement = select(Candidate)
+        candidates = session.exec(statement).all()
+
+        return candidates
+
+    def get_candidate(
+            session: Session,
+            candidate_id,
+    ):
+        candidate = session.get(Candidate, candidate_id)
+        return candidate
