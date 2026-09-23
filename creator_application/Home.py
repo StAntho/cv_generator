@@ -57,11 +57,14 @@ if submitted:
 
     try:
         with st.spinner("Generating your CV..."):
-            result = client.generate_cv(payload)
+            pdf_bytes, filename = client.generate_cv(payload)
 
-        st.success(
-            f"CV {result['filename']} generated successfully."
-        )
+            st.session_state["generated_cv"] = {
+                    "content": pdf_bytes,
+                    "filename": filename,
+                }
+            
+            st.success("CV generated successfully.")
 
     except httpx.TimeoutException:
         st.error("The API request timed out.")
@@ -77,3 +80,14 @@ if submitted:
 
     except Exception as exc:
         st.error(f"Unexpected error: {exc}")
+
+generated_cv = st.session_state.get("generated_cv")
+
+if generated_cv:
+    st.download_button(
+        "Download CV",
+        data=generated_cv["content"],
+        file_name=generated_cv["filename"],
+        mime="application/pdf",
+        type="primary",
+    )

@@ -5,6 +5,7 @@ from schemas.generator import GenerateRequest
 from structure_builder.simple_structure import CVBuilder
 from sqlmodel import Session, select
 from models.candidate import Candidate
+from fastapi.responses import FileResponse
 
 class CVGeneratorService:
     GENERATED_DIR = Path("generations")
@@ -34,15 +35,17 @@ class CVGeneratorService:
             pdf.bullet_list(sections[title])
 
         try:
-            output_path = pdf.output(self.GENERATED_DIR / f"cv_{id.name}.pdf")
+            filename = f"cv_{id.name}.pdf"
+            output_path = self.GENERATED_DIR / filename
 
             pdf.output(output_path)
 
-            return {
-                "success": True,
-                "filename": f"cv_{id.name}.pdf",
-    }
-
+            return FileResponse(
+                path=output_path,
+                media_type="application/pdf",
+                filename=filename,
+            )
+    
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 

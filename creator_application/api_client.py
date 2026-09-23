@@ -17,7 +17,14 @@ class CVApiClient:
 
         response.raise_for_status()
 
-        return response.json()
+        filename = response.headers.get(
+            "content-disposition",
+            'filename="cv.pdf"',
+        )
+
+        filename = filename.split("filename=")[-1].strip('"')
+
+        return response.content, filename
 
 
     def populate_candidate(self, payload: dict) -> dict:

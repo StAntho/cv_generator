@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Depends, Form
+from fastapi.responses import FileResponse
 from schemas.generator import GenerateRequest
 from services.generator_service import CVGeneratorService
 from sqlmodel import Session, select
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/cv_generate", tags=["Generator"])
 def generate_cv(
     payload: GenerateRequest,
     service: CVGeneratorService = Depends(CVGeneratorService)
-):
+) -> FileResponse:
     return service.generate(payload)
 
 
