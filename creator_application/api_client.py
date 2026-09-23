@@ -32,3 +32,12 @@ class CVApiClient:
         response.raise_for_status()
 
         return response.json()
+
+    
+    def get_candidates(self):
+        url = f"{self.base_url}/cv_generate/candidates"
+        candidates = httpx.get(
+            url,
+            timeout=60.0,
+        )
+        return candidates.json()

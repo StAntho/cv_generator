@@ -3,6 +3,12 @@ import os, requests, httpx
 from dotenv import load_dotenv
 from utils.text import text_to_list
 from api_client import CVApiClient
+from services.cv_service import (
+    candidate_to_form_data,
+    validate_cv,
+    form_data_to_payload
+)
+from components.cv_form import cv_form
 
 st.set_page_config(
     page_title="cv generator",
@@ -11,116 +17,51 @@ st.set_page_config(
 
 st.title("CV Generator")
 
+
 # === API ===
 load_dotenv()
 API_URL = os.getenv("STREAMLIT_URL_API")
 
 client = CVApiClient(API_URL)
 
-with st.form("cv_form"):
+candidates = client.get_candidates()
 
-    st.subheader("Personal information")
-    name = st.text_input("Your name", placeholder="John Doe")
-    phone = st.text_input("Your phone number", type="phone")
-    email = st.text_input("Your email", type="email")
-    whv = st.text_input("Your visa number", placeholder="Visa number")
 
-    st.subheader("Availabilities")  
-    availability = st.multiselect(
-        "Select your availabilities", 
-        [
-            "Availability", 
-            "Immediate Start", 
-            "Monday to Friday (am/pm)", 
-            "Weekends"
-        ]
-    )
+# === CANDIDATE SELECTION === 
 
-    st.subheader("Skills and experiences")
-    section_1_title = st.text_input("section_1_title", "Key Skills")
-    section_1_items = st.text_area(
-        f"Content for {section_1_title}",
-        placeholder="Python \
-                FastAPI \
-                Docker"
-        )
-    
-    section_2_title = st.text_input("section_2_title", "Work Experiences")
-    section_2_items = st.text_area(
-        f"Content for {section_2_title}",
-        placeholder="Backend Developer \
-        API development"
-        )
-    
-    section_3_title = st.text_input("section_3_title", "Education & Training")
-    section_3_items = st.text_area(
-        f"Content for {section_3_title}",
-        placeholder="Computer Science \
-        Software Engineering"
-        )
-    
-    section_4_title = st.text_input("section_4_title", "Language skills")
-    section_4_items = st.text_area(
-        f"Content for {section_4_title}",
-        placeholder="English \
-        French"
-        )
-    
-    section_5_title = st.text_input("section_5_title", "References available upon request")
-    section_5_items = st.text_area(
-        f"Content for {section_5_title}",
-        placeholder="Backend Developer \
-        API development"
-        )
-    
-    submitted = st.form_submit_button(
-        "Generate CV",
-        type="primary"
-    )
+selected_name = st.selectbox(
+    "Select a candidate",
+    [candidate["name"] for candidate in candidates],
+    index=None,
+    placeholder="Select a candidate or enter a new one",
+    accept_new_options=True,
+)
+
+selected_candidate = next(
+    (candidate for candidate in candidates if candidate["name"] == selected_name),
+    None,
+)
+
+is_existing_candidate = selected_candidate is not None
+
+
+initial_data = candidate_to_form_data(selected_candidate)
+submitted, form_data = cv_form(initial_data, is_existing_candidate)
+
 
 if submitted:
 
-    if not name.strip():
-        st.error("Name is required.")
-        st.stop()
+    validate_cv(form_data)
 
-    if not phone.strip():
-        st.error("Phone number is required.")
-        st.stop()
-
-    if not email.strip():
-        st.error("Email is required.")
-        st.stop()
-
-    if not whv.strip():
-        st.error("Visa number is required.")
-        st.stop()
-
-    payload = {
-        "personal_info": {
-            "name": name.strip(),
-            "phone": phone.strip(),
-            "email": email.strip(),
-            "whv": whv.strip(),
-        },
-        "availability": availability,
-        "sections": {
-            section_1_title.strip(): text_to_list(section_1_items),
-            section_2_title.strip(): text_to_list(section_2_items),
-            section_3_title.strip(): text_to_list(section_3_items),
-            section_4_title.strip(): text_to_list(section_4_items),
-            section_5_title.strip(): text_to_list(section_5_items),
-        },
-    }
-    st.write(payload)
+    payload = form_data_to_payload(form_data)
 
     try:
         with st.spinner("Generating your CV..."):
-            response = client.generate_cv(payload)
+            result = client.generate_cv(payload)
 
-        result = response
-
-        st.success(f"CV {result["filename"]} generated successfully.")
+        st.success(
+            f"CV {result['filename']} generated successfully."
+        )
 
     except httpx.TimeoutException:
         st.error("The API request timed out.")
