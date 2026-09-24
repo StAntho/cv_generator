@@ -48,3 +48,27 @@ class CVApiClient:
             timeout=60.0,
         )
         return candidates.json()
+
+
+    def populate_industry(self, payload: dict) -> dict:
+        url = f"{self.base_url}/populate_db/industry"
+
+        response = httpx.post(
+            url,
+            json=payload,
+            timeout=60.0,
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
+
+    def get_industries(self):
+        url = f"{self.base_url}/cv_generate/industries"
+        industries = httpx.get(
+            url,
+            timeout=60.0,
+        )
+        return industries.json()
+    

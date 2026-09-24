@@ -13,6 +13,9 @@ if not API_URL:
 
 client = CVApiClient(API_URL)
 
+candidates = client.get_candidates()
+industries = client.get_industries()
+
 st.title("Populator database")
 
 with st.form("candidate_form"):
@@ -77,3 +80,46 @@ if submitted:
 
     except Exception as exc:
         st.error(f"Unexpected error: {exc}")
+
+
+
+with st.form("industry_form"):
+
+    st.subheader("Add new regular industry")
+    industry = st.text_input("New industry", placeholder="Construction")
+
+    submitted_industry = st.form_submit_button(
+        "Add to the database",
+        type="primary"
+    )
+
+    if submitted_industry:
+        if not industry.strip():
+            st.error("Industry is required.")
+            st.stop()
+
+        payload = {
+            "name": industry.strip(),
+        }
+        try:
+            with st.spinner("Recording the new industry..."):
+    
+                response = client.populate_industry(payload)
+    
+            result = response
+            st.success(f"Industry: {result["name"]} recorded successfully.")
+    
+        except httpx.TimeoutException:
+            st.error("The API request timed out.")
+    
+        except httpx.HTTPStatusError as exc:
+            st.error(
+                f"FastAPI returned {exc.response.status_code}: "
+                f"{exc.response.text}"
+            )
+    
+        except httpx.RequestError as exc:
+            st.error(f"Connection error: {exc}")
+    
+        except Exception as exc:
+            st.error(f"Unexpected error: {exc}")

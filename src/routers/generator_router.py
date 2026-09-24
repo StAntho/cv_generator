@@ -28,3 +28,10 @@ def get_candidate(
     session: Session = Depends(get_session),
 ):
     return CVGeneratorService.get_candidate(session, candidate_id)
+
+
+@router.get("/industries")
+def get_industries(
+    session: Session = Depends(get_session),
+):
+    return CVGeneratorService.get_industries(session)

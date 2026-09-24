@@ -5,6 +5,7 @@ from schemas.generator import GenerateRequest
 from structure_builder.simple_structure import CVBuilder
 from sqlmodel import Session, select
 from models.candidate import Candidate
+from models.industry import Industry
 from fastapi.responses import FileResponse
 
 class CVGeneratorService:
@@ -64,3 +65,12 @@ class CVGeneratorService:
     ):
         candidate = session.get(Candidate, candidate_id)
         return candidate
+
+    
+    def get_industries(
+            session: Session,
+    ):        
+        statement = select(Industry)
+        industries = session.exec(statement).all()
+
+        return industries
