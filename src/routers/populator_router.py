@@ -1,9 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, Depends, Form
-from schemas.data_populate import CandidateRead, IndustryRead, IndustryList
+from schemas.data_populate import CandidateRead, IndustryRead, IndustryList, SkillRead, CandidateIndustrySkillCreate
 from schemas.generator import CandidateList
 from sqlmodel import Session
 from db.database import get_session
-from services.database_populator_service import create_candidate, create_industry
+from services.database_populator_service import create_candidate, create_industry, create_skill
 
 router = APIRouter(prefix="/populate_db", tags=["Generator"])
 
@@ -20,3 +20,10 @@ def generate_cv(
     session: Session = Depends(get_session),
 ):
     return create_industry(session, data)
+
+@router.post("/skill", response_model=SkillRead)
+def generate_cv(
+    data: CandidateIndustrySkillCreate,
+    session: Session = Depends(get_session),
+):
+    return create_skill(session, data)
