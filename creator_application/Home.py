@@ -25,6 +25,7 @@ API_URL = os.getenv("STREAMLIT_URL_API")
 client = CVApiClient(API_URL)
 
 candidates = client.get_candidates()
+industries = client.get_industries()
 
 
 # === CANDIDATE SELECTION === 
@@ -42,8 +43,28 @@ selected_candidate = next(
     None,
 )
 
-is_existing_candidate = selected_candidate is not None
+selected_industry = st.selectbox(
+    "Select an industry",
+    [industry["name"] for industry in industries],
+    index=None,
+    placeholder="Select an industry",
+)
 
+selected_industry = next(
+    (industry for industry in industries if industry["name"] == selected_industry),
+    None,
+)
+
+is_existing_candidate = selected_candidate is not None
+if st.button("Charger les skills"):
+    if selected_candidate is not None and selected_industry is not None:
+        st.session_state["skills"] = client.get_skills_from(
+            selected_candidate['id'],
+            selected_industry['id'],
+        )
+
+skills = st.session_state.get("skills", [])
+st.write(skills)
 
 initial_data = candidate_to_form_data(selected_candidate)
 submitted, form_data = cv_form(initial_data, is_existing_candidate)

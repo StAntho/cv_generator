@@ -82,3 +82,15 @@ class CVApiClient:
         )
         response.raise_for_status
         return response.json()
+
+    def get_skills_from(self, candidate_id, industry_id) -> dict:
+        url = f"{self.base_url}/cv_generate/skills_from"
+        skills_from = httpx.get(
+            url,
+            params={
+                "candidate_id": candidate_id,
+                "industry_id": industry_id,
+            },
+            timeout=60.0,
+        )
+        return skills_from.json()
