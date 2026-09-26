@@ -94,3 +94,11 @@ class CVApiClient:
             timeout=60.0,
         )
         return skills_from.json()
+    
+    def get_skills(self):
+        url = f"{self.base_url}/cv_generate/skills"
+        skills = httpx.get(
+            url,
+            timeout=60.0,
+        )
+        return skills.json()

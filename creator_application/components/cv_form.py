@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.text import text_to_list
 
 def cv_form(
     initial_data: dict,
@@ -6,6 +7,27 @@ def cv_form(
 ) -> tuple[bool, dict]:
 
     personal_info = initial_data["personal_info"]
+
+
+    for index, section in enumerate(initial_data["sections"]):
+
+        title_key = f"section_{index}_title"
+        items_key = f"section_{index}_items"
+
+        st.session_state[title_key] = section["title"]
+
+        raw_items = section.get("items", "")
+
+        if isinstance(raw_items, list):
+            items_value = "\n".join(
+                item["name"]
+                for item in raw_items
+            )
+        else:
+            items_value = raw_items or ""
+
+        st.session_state[items_key] = items_value
+
 
     with st.form("cv_form"):
 
@@ -58,21 +80,23 @@ def cv_form(
 
         for index, section in enumerate(initial_data["sections"]):
 
+            title_key = f"section_{index}_title"
+            items_key = f"section_{index}_items"
+
             title = st.text_input(
                 f"Section {index + 1} title",
-                value=section["title"],
+                key=title_key,
                 placeholder="Section title",
-                key=f"section_{index}_title",
             )
 
             items = st.text_area(
                 f"Content for {title}",
-                value=section["items"],
+                key=items_key,
                 placeholder="Enter your information here...",
-                key=f"section_{index}_items",
             )
 
             sections.append({
+                "key": section.get("key"),
                 "title": title,
                 "items": items,
             })

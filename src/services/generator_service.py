@@ -6,7 +6,7 @@ from structure_builder.simple_structure import CVBuilder
 from sqlmodel import Session, select
 from models.candidate import Candidate
 from models.industry import Industry
-from models.skill import CandidateIndustrySkill
+from models.skill import CandidateIndustrySkill, Skill
 from fastapi.responses import FileResponse
 
 class CVGeneratorService:
@@ -91,6 +91,15 @@ class CVGeneratorService:
             )
         )
 
+        skills = session.exec(statement).all()
+
+        return skills
+
+    
+    def get_skills(
+            session: Session,
+    ):        
+        statement = select(Skill)
         skills = session.exec(statement).all()
 
         return skills

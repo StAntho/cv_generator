@@ -44,3 +44,10 @@ def get_skills_from(
     session: Session = Depends(get_session),
 ):
     return CVGeneratorService.get_skills_from(session, candidate_id, industry_id)
+
+@router.get("/skills")
+def get_skills(
+    session: Session = Depends(get_session),
+):
+    return CVGeneratorService.get_skills(session)
+

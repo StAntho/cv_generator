@@ -66,9 +66,8 @@ if st.button("Charger les skills"):
 skills = st.session_state.get("skills", [])
 st.write(skills)
 
-initial_data = candidate_to_form_data(selected_candidate)
+initial_data = candidate_to_form_data(selected_candidate, skills)
 submitted, form_data = cv_form(initial_data, is_existing_candidate)
-
 
 if submitted:
 

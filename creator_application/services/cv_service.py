@@ -1,10 +1,51 @@
 import streamlit as st
 from utils.text import text_to_list
 from .default_template_form import DEFAULT_CV
+from api_client import CVApiClient
+from dotenv import load_dotenv
+import os
 
-def candidate_to_form_data(candidate: dict | None) -> dict:
+
+# === API ===
+load_dotenv()
+API_URL = os.getenv("STREAMLIT_URL_API")
+
+client = CVApiClient(API_URL)
+
+def candidate_to_form_data(
+    candidate: dict | None,
+    skills: list[dict] | None = None,
+) -> dict:
     if not candidate:
         return DEFAULT_CV.copy()
+
+    sections = [
+        section.copy()
+        for section in candidate.get(
+            "sections",
+            DEFAULT_CV["sections"],
+        )
+    ]
+
+    if skills:
+        skill_ids = [skill["skill_id"] for skill in skills]
+        
+        skills_db = client.get_skills()
+    
+        skills_by_id = {
+            skill["id"]: skill
+            for skill in skills_db
+        }
+    
+        selected_skills = [
+            skills_by_id[skill_id]
+            for skill_id in skill_ids
+            if skill_id in skills_by_id
+        ]
+    
+        for section in sections:
+            if section["key"] == "key_skills":
+                section["items"] = selected_skills
 
     return {
         "personal_info": {
@@ -14,8 +55,9 @@ def candidate_to_form_data(candidate: dict | None) -> dict:
             "whv": candidate.get("whv", ""),
         },
         "availability": candidate.get("availability", []),
-        "sections": candidate.get("sections", DEFAULT_CV["sections"]),
+        "sections": sections,
     }
+
 
 def form_data_to_payload(data: dict) -> dict:
     return {
